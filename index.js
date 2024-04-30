@@ -27,6 +27,7 @@ try {
 const userSchema = new mongoose.Schema({
   username: {
     type: String,
+    unique: true,
     required: true
   },
   count: Number,
@@ -46,7 +47,8 @@ const createAndSaveUser = async (userName) => {
     const savedUser = await userOne.save();
     return savedUser;
   } catch(error) {
-    console.log("Error Saving User: " ,error);
+    // console.log("Error Saving User: ", error);
+    return null;
   }
 }
 
@@ -60,7 +62,11 @@ app.get("/api/hello", (req, res) => {
 app.post("/api/users", async (req, res) => {
   const userName = req.body.username;
   const returnedData = await createAndSaveUser(userName);
-  console.log(returnedData);
+  if(!returnedData){
+    res.json( {"Failed" : "Username already exists.."} );
+    return;
+  }
+  console.log(returnedData._id.valueOf());
   res.json({ "Received": returnedData });
 })
 
