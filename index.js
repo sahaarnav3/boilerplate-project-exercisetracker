@@ -93,11 +93,11 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       month: 'short',
       day: 'numeric'
     }).replaceAll(",", "").split(" ");
-    if(parseInt(dateArray[2]) < 10){
-      dateArray[2] = "0"+dateArray[2];
+    if (parseInt(dateArray[2]) < 10) {
+      dateArray[2] = "0" + dateArray[2];
     }
     req.body.date = dateArray.join(" ");
-    
+
     fetchedUser.log.push(req.body);
     fetchedUser.count = fetchedUser.count + 1;
     fetchedUser = await fetchedUser.save();
@@ -110,6 +110,21 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
   res.json({
     "_id": userId, "username": fetchedUser.username, "date": req.body.date, "duration": req.body.duration,
     "description": req.body.description
+  });
+});
+
+//Below router will be used to get exercise logs of a user with the help of "_id"
+app.get("/api/users/:_id/logs", async (req, res) => {
+  const userId = req.params._id;
+  let fetchedUser = "";
+  try {
+    fetchedUser = await User.findById(userId);
+  } catch (error) {
+    res.json({ "error": "Either _id wrong or some other issue caused, try again." });
+  }
+  res.json({
+    "_id": fetchedUser._id, "username": fetchedUser.username, "count": fetchedUser.count,
+    "log": fetchedUser.log
   });
 });
 
