@@ -34,10 +34,9 @@ const userSchema = new mongoose.Schema({
   log: [{
     description: String,
     duration: Number,
-    date: Date
+    date: String
   }],
 });
-
 let User = mongoose.model('User', userSchema);
 
 //To create and save the user in database -- 
@@ -46,7 +45,7 @@ const createAndSaveUser = async (userName) => {
   try {
     const savedUser = await userOne.save();
     return savedUser;
-  } catch(error) {
+  } catch (error) {
     // console.log("Error Saving User: ", error);
     return null;
   }
@@ -62,19 +61,53 @@ app.get("/api/hello", (req, res) => {
 app.post("/api/users", async (req, res) => {
   const userName = req.body.username;
   const returnedData = await createAndSaveUser(userName);
-  if(!returnedData){
-    res.json( {"Failed" : "Username already exists.."} );
+  if (!returnedData) {
+    res.json({ "Failed": "Either Username already exists or Some false value is submitted.." });
     return;
   }
-  console.log(returnedData._id.valueOf());
-  res.json({ "Received": returnedData });
+  res.json({ "username": userName, "_id": returnedData._id.valueOf() });
+})
+
+//Below router will be used to get a list of all users (Only username and _id)
+app.get("/api/users", async (req, res) => {
+  const allUsers = await User.find({}, { username: 1, _id: 1, __v: 1 });
+  res.send(allUsers);
 })
 
 
 //Logic for saving the exercise according to user id generated in first step...
-app.post("/api/users/:_id/exercises", (req, res) => {
-  res.json({ "Message": "Saving user exercise details router working..." });
-})
+app.post("/api/users/:_id/exercises", async (req, res) => {
+  const userId = req.params._id;
+  let fetchedUser = "";
+  try {
+    fetchedUser = await User.findById(userId);
+    // console.log(fetchedUser);
+    let dateString = req.body.date;
+    console.log(dateString);
+    if (!dateString)
+      dateString = new Date();
+    else
+      dateString = new Date(Date.parse(dateString));
+    req.body.date = dateString.toLocaleDateString('en-US', {
+      weekday: 'short',
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric'
+    }).replaceAll(",", "");
+    fetchedUser.log.push(req.body);
+    fetchedUser.count = fetchedUser.count + 1;
+    fetchedUser = await fetchedUser.save();
+    // console.log(fetchedUser);
+  } catch (error) {
+    console.log(error);
+    res.json({ "Error": "Some error Occured" });
+    return;
+  }
+  res.json({
+    "_id": userId, "username": fetchedUser.username, "date": req.body.date, "duration": req.body.duration,
+    "description": req.body.description
+  });
+});
 
 
 
