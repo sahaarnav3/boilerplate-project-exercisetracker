@@ -74,26 +74,30 @@ app.get("/api/users", async (req, res) => {
   res.send(allUsers);
 })
 
-
 //Logic for saving the exercise according to user id generated in first step...
 app.post("/api/users/:_id/exercises", async (req, res) => {
   const userId = req.params._id;
   let fetchedUser = "";
   try {
     fetchedUser = await User.findById(userId);
-    // console.log(fetchedUser);
+
+    //Date Manipulation
     let dateString = req.body.date;
-    console.log(dateString);
     if (!dateString)
       dateString = new Date();
     else
       dateString = new Date(Date.parse(dateString));
-    req.body.date = dateString.toLocaleDateString('en-US', {
+    let dateArray = dateString.toLocaleDateString('en-US', {
       weekday: 'short',
       year: 'numeric',
       month: 'short',
       day: 'numeric'
-    }).replaceAll(",", "");
+    }).replaceAll(",", "").split(" ");
+    if(parseInt(dateArray[2]) < 10){
+      dateArray[2] = "0"+dateArray[2];
+    }
+    req.body.date = dateArray.join(" ");
+    
     fetchedUser.log.push(req.body);
     fetchedUser.count = fetchedUser.count + 1;
     fetchedUser = await fetchedUser.save();
