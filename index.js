@@ -116,7 +116,6 @@ app.post("/api/users/:_id/exercises", async (req, res) => {
       duration: duration,
       date: date
     });
-    console.log(exerciseObj);
     exercise = await exerciseObj.save();
   } catch (error) {
     console.log(error);
@@ -134,7 +133,6 @@ const fetchUsersWithParams = async (userId, fromDate, toDate, limit) => {
   let fetchedUser = "";
   let fetchedExercises = "";
   let responseToReturn = {};
-  console.log(fromDate, toDate, limit);
   try {
     fetchedUser = await User.findById(userId);
 
@@ -151,7 +149,6 @@ const fetchUsersWithParams = async (userId, fromDate, toDate, limit) => {
     if (fromDate || toDate) {
       filter.date = dateObj;
     }
-    console.log(filter);
     fetchedExercises = await Exercise.find(filter).limit(+limit || 1000); // + is used to parse the string to int.
 
     //Fabricating exercise logs according to question--
